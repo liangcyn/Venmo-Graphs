@@ -7,6 +7,18 @@ import csv
 
 G = snap.LoadEdgeList(snap.PNEANet, "clean_venmo.csv", 0, 1, ',')
 
+# add edge attributes
+with open("clean_venmo.csv", encoding='utf-8') as csv_file:
+	reader = csv.reader(csv_file, delimiter=",")
+	for row in reader:
+		payer = int(row[0])
+		payee = int(row[1])
+		message = row[2]
+		timestamp = row[3]
+		eid = G.GetEId(payer, payee)
+		G.AddStrAttrDatE(eid, message, "Message")
+		G.AddStrAttrDatE(eid, timestamp, "Timestamp")
+
 # get weakly connected components
 Components = snap.TCnComV()
 snap.GetWccs(G, Components)
@@ -22,13 +34,13 @@ CnCom = snap.TIntV()
 
 i = -1
 
-# get a mid-sized 
+# get a mid-sized
 for node in G.Nodes():
 	i = node.GetId()
-	print(i) 
+	print(i)
 	snap.GetNodeWcc(G, i, CnCom)
 	print("CnCom.Len() = %d" % (CnCom.Len()))
-	if CnCom.Len() < 1000 and CnCom.Len() > 50:
+	if CnCom.Len() < 10 and CnCom.Len() > 5:
 		break
 
 G_CnCom = snap.TIntV()
@@ -40,18 +52,24 @@ print("avg component size,", sum(wcc_sizes)/len(wcc_sizes))
 # convert snap.py WCC to NetworkX subgraph for easier visualization tools.
 nxG = nx.DiGraph()
 
-ctr = 0 
+ctr = 0
 
 sub_g = snap.GetSubGraph(G, G_CnCom)
 
 for edge in sub_g.Edges():
-	src = edge.GetSrcNId()
-	dst = edge.GetDstNId()
+	payer = edge.GetSrcNId()
+	payee = edge.GetDstNId()
 
-	if nxG.has_edge(src, dst):
-		nxG[src][dst]['weight'] += 1
+	# print edge attributes
+	eid = G.GetEId(payer, payee)
+	message = G.GetStrAttrDatE(eid, "Message")
+	timestamp = G.GetStrAttrDatE(eid, "Timestamp")
+	print("edge %d (%d,%d), message %s, timestamp %s" % (eid, payer, payee, message, timestamp))
+
+	if nxG.has_edge(payer, payee):
+		nxG[payer][payee]['weight'] += 1
 	else:
-		nxG.add_edge(src, dst, weight = 1)
+		nxG.add_edge(payer, payee, weight = 1)
 
 print(ctr)
 print("done adding edges")
@@ -74,4 +92,3 @@ nx.draw_networkx_edges(nxG, pos, edgelist=esmall,
 labels = nx.get_edge_attributes(nxG,'weight')
 nx.draw_networkx_edge_labels(nxG,pos,edge_labels=labels)
 fig.savefig('graph.png')
-
