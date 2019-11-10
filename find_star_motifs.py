@@ -1,8 +1,10 @@
-# visualizes simple temporal wcc subgraphs on networkx 
+# visualizes simple temporal wcc subgraphs on networkx
 
 import networkx as nx
 import matplotlib.pyplot as plt
 import csv
+
+isomorphs = dict()
 
 
 def get_timestamps():
@@ -15,9 +17,23 @@ def get_timestamps():
 
     return timestamps
 
+def find_isomorph(c):
+    for i in isomorphs:
+        if nx.is_isomorphic(c, i):
+            return i
+    return c
+
 def has_star_motif(c):
     for node in c:
         if len(list(nx.all_neighbors(c, node))) > 2:
+
+            # counts motifs
+            motif = find_isomorph(c)
+            if motif not in isomorphs:
+                isomorphs[motif] = 0
+            isomorphs[motif] = 1
+
+
             pos = nx.spring_layout(c)
 
             # draw nodes
@@ -30,7 +46,7 @@ def has_star_motif(c):
             plt.show()
 
             return
-    return 
+    return
 
 
 def find_temporal_graphs_at_time(timestring):
@@ -63,6 +79,7 @@ def find_temporal_graphs_at_time(timestring):
 
     for c in sig_wccs:
         has_star_motif(c)
+    print(isomorphs)
 
 
 def main():
