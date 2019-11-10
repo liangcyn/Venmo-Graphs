@@ -16,21 +16,38 @@ def get_timestamps():
     return timestamps
 
 def has_star_motif(c):
-    for node in c:
-        if len(list(nx.all_neighbors(c, node))) > 2:
-            pos = nx.spring_layout(c)
+    # for node in c:
+    #     if len(list(nx.all_neighbors(c, node))) > 2:
+    #         pos = nx.spring_layout(c)
 
-            # draw nodes
-            nx.draw_networkx_nodes(c,pos=pos)
-            nx.draw_networkx_edges(c,pos=pos)
-            messages=nx.get_edge_attributes(c,'message')
-            print(messages)
-            nx.draw_networkx_edge_labels(c, pos=pos,edge_labels=messages)
+    #         # draw nodes
+    #         nx.draw_networkx_nodes(c,pos=pos)
+    #         nx.draw_networkx_edges(c,pos=pos)
+    #         messages=nx.get_edge_attributes(c,'message')
+    #         print(messages)
+    #         nx.draw_networkx_edge_labels(c, pos=pos,edge_labels=messages)
 
-            plt.show()
+    #         plt.show()
 
-            return
-    return 
+    #         return
+    # return 
+
+    d_append = {}
+
+    for n in c:
+        in_neighbors = len(list(c.predecessors(n)))
+        out_neighbors = len(list(c.successors(n)))
+
+        if in_neighbors + out_neighbors > 2:
+            star_tuple = (in_neighbors, out_neighbors)
+            if star_tuple not in d_append:
+                d_append[star_tuple] = 1
+            else:
+                d_append[star_tuple] += 1
+
+    return d_append
+
+
 
 
 def find_temporal_graphs_at_time(timestring):
@@ -60,8 +77,11 @@ def find_temporal_graphs_at_time(timestring):
     sig_wccs = [c for c in list(nx.weakly_connected_component_subgraphs(G)) if len(c) >= 3]
     print("num wccs > 3", len(sig_wccs))
 
+    d = {}
+
     for c in sig_wccs:
-        has_star_motif(c)
+        d.update(has_star_motif(c))
+        print(d)
 
 
 def main():
