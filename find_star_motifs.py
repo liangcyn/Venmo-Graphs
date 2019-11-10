@@ -41,11 +41,12 @@ def find_temporal_graphs_at_time(timestring):
         csv_F = csv.reader(csvfile,delimiter=',')
         for row in csv_F:
             timestamp = row[3]
+
             if timestamp.startswith(timestring):
                 payer = row[0]
                 receiver = row[1]
                 message = row[2]
-                G.add_edge(payer, receiver, message = message, id = ctr)
+                G.add_edge(payer, receiver, message = message, timestamp = timestamp)
             ctr += 1
             if ctr % 1000000 == 0:
                 print(ctr)
